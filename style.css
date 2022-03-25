@@ -115,10 +115,17 @@ body {
   color: #222831;
 }
 
+.but {
+  display: flex;
+  margin-top: 10px;
+}
+
 .changelocation {
   width: 80%;
   transition: 0.2s ease-in-out;
-  padding: 5px;
+  padding: 3px;
+  padding-right: 15px;
+  white-space: nowrap;
 }
 
 .changelocation:hover {

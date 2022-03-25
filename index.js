@@ -7,34 +7,30 @@ const temps = document.getElementById("temps");
 const cards = document.getElementsByClassName("cards");
 const iconnxtdays = document.getElementsByClassName("iconnxtdays");
 const value = document.getElementsByClassName("value");
+const changelocation = document.querySelector(".changelocation");
 
-// Texte milieu CARTES
-cards[0].children[1].textContent = "hey";
-cards[1].children[1].textContent = "hey";
-cards[2].children[1].textContent = "hey";
-cards[3].children[1].textContent = "hey";
-
-//Texte haut CARTES
-
-// cards[0].children[0].innerHTML = 'hey bg';
-// cards[1].children[0].innerHTML = 'hey bg';
-// cards[2].children[0].innerHTML = 'hey bg';
-// cards[3].children[0].innerHTML = 'hey bg';
-
-// Texte bas CARTES
-
-cards[0].children[2].textContent = "cc";
-cards[1].children[2].textContent = "cc";
-cards[2].children[2].textContent = "cc";
-cards[3].children[2].textContent = "cc";
 /////////////
 const day1 = document.getElementById("day1");
 
-const urlCurrentWeather =
-  "https://api.openweathermap.org/data/2.5/weather?q=marseille&appid=0af88cd672bdf1de0ef6e4f79489d087&units=metric";
+var currentCity = "marseille";
 
-const urlforecastweather =
-  "https://api.openweathermap.org/data/2.5/forecast?q=marseille&appid=0af88cd672bdf1de0ef6e4f79489d087&units=metric";
+let urlCurrentWeather = `https://api.openweathermap.org/data/2.5/weather?q=${currentCity}&appid=0af88cd672bdf1de0ef6e4f79489d087&units=metric`;
+let urlforecastweather = `https://api.openweathermap.org/data/2.5/forecast?q=${currentCity}&appid=0af88cd672bdf1de0ef6e4f79489d087&units=metric`;
+
+function updateCity() {
+  if (document.getElementById("in").value != "") {
+    currentCity = document.getElementById("in").value;
+  } else {
+    currentCity = "marseille";
+  }
+  urlCurrentWeather = `https://api.openweathermap.org/data/2.5/weather?q=${currentCity}&appid=0af88cd672bdf1de0ef6e4f79489d087&units=metric`;
+  urlforecastweather = `https://api.openweathermap.org/data/2.5/forecast?q=${currentCity}&appid=0af88cd672bdf1de0ef6e4f79489d087&units=metric`;
+  recupererInfoBasiques();
+  recupererInfosAPI();
+  recupererForecastAPI();
+
+  console.log("ville actualisé");
+}
 
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
@@ -47,22 +43,20 @@ function recupererInfoBasiques() {
   let days = new Date();
 
   let jour = capitalizeFirstLetter(
-    days.toLocaleString("fr-fr", { weekday: "long" })
+    days.toLocaleString("en-us", { weekday: "long" })
   );
 
-  let date = days.toLocaleString("fr-fr", {
+  let date = days.toLocaleString("en-us", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
 
-  let location = "Marseille";
-
   //Integrer
 
   day.textContent = jour;
   dateEntiere.textContent = date;
-  localisation.textContent = location;
+  localisation.textContent = capitalizeFirstLetter(currentCity);
 }
 
 /////////////// RECUPERATION PARTIE BOT LEFT + TOP RIGHT ///////////////
@@ -160,7 +154,7 @@ function recupererForecastAPI() {
 
           cards[i].children[1].textContent = capitalizeFirstLetter(
             todayDatePlain
-              .toLocaleString("fr-fr", { weekday: "long" })
+              .toLocaleString("en-us", { weekday: "long" })
               .slice(0, 3)
           );
 
@@ -210,6 +204,6 @@ function determineSVG(svgday) {
   return actualsvg;
 }
 
-recupererInfoBasiques();
-recupererInfosAPI();
-recupererForecastAPI();
+// On charge tout, à chaque changement de ville ou au début, par défaut marseille.
+changelocation.addEventListener("click", updateCity);
+updateCity();
