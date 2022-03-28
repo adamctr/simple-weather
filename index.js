@@ -17,19 +17,32 @@ var currentCity = "marseille";
 let urlCurrentWeather = `https://api.openweathermap.org/data/2.5/weather?q=${currentCity}&appid=0af88cd672bdf1de0ef6e4f79489d087&units=metric`;
 let urlforecastweather = `https://api.openweathermap.org/data/2.5/forecast?q=${currentCity}&appid=0af88cd672bdf1de0ef6e4f79489d087&units=metric`;
 
-function updateCity() {
-  if (document.getElementById("in").value != "") {
+const updateLoading = (state) => {
+  const loaderElem = document.getElementById("loader");
+  if (state) {
+    return (loaderElem.style.display = "none");
+  }
+  return (loaderElem.style.display = "flex");
+};
+
+function updateCity(e) {
+  updateLoading(false);
+  const elemInput = document.getElementById("in");
+  if (e) e.preventDefault();
+  if (elemInput.value != "") {
     currentCity = document.getElementById("in").value;
+    elemInput.value = "";
   } else {
     currentCity = "marseille";
   }
   urlCurrentWeather = `https://api.openweathermap.org/data/2.5/weather?q=${currentCity}&appid=0af88cd672bdf1de0ef6e4f79489d087&units=metric`;
   urlforecastweather = `https://api.openweathermap.org/data/2.5/forecast?q=${currentCity}&appid=0af88cd672bdf1de0ef6e4f79489d087&units=metric`;
-  recupererInfoBasiques();
   recupererInfosAPI();
   recupererForecastAPI();
+  recupererInfoBasiques();
 
   console.log("ville actualisé");
+  updateLoading(true);
 }
 
 function capitalizeFirstLetter(string) {
@@ -142,7 +155,7 @@ function recupererForecastAPI() {
 
         // On ne veut que les 4 jours d'après :
         if (listedttxt.length > 4) {
-          listedttxt.pop();
+          listedttxt.pop(); // TODO: slice better
         }
 
         // Pour chaque index des jours forecast, on affiche la valeur dans les cartes.
@@ -164,7 +177,7 @@ function recupererForecastAPI() {
         }
         console.log(listedttxt);
       } else {
-        console.log("Un probleme est intervenu.");
+        console.error("Un probleme est intervenu.");
       }
     }
     console.log("Météo prochaine actualisée");
@@ -176,16 +189,9 @@ function determineSVG(svgday) {
   let actualsvg = "";
 
   switch (svgday) {
-    default:
-      actualsvg =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun day-icon"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
     case "Clouds":
       actualsvg =
         '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-cloud day-icon"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>';
-      break;
-    case "Sun":
-      actualsvg =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun day-icon"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
       break;
     case "Snow":
       actualsvg =
@@ -196,9 +202,10 @@ function determineSVG(svgday) {
         '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-cloud-snow day-icon"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"></path><line x1="8" y1="16" x2="8.01" y2="16"></line><line x1="8" y1="20" x2="8.01" y2="20"></line><line x1="12" y1="18" x2="12.01" y2="18"></line><line x1="12" y1="22" x2="12.01" y2="22"></line><line x1="16" y1="16" x2="16.01" y2="16"></line><line x1="16" y1="20" x2="16.01" y2="20"></line></svg>';
       break;
     case "Clear":
+    case "Sun":
+    default:
       actualsvg =
         '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun day-icon"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
-      break;
   }
 
   return actualsvg;

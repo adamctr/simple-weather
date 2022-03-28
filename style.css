@@ -123,8 +123,6 @@ body {
 .changelocation {
   width: 80%;
   transition: 0.2s ease-in-out;
-  padding: 3px;
-  padding-right: 15px;
   white-space: nowrap;
 }
 
@@ -168,4 +166,45 @@ body {
   .temperature {
     font-size: 30px;
   }
+}
+
+.formButton {
+  border-radius: 12.5px;
+  border-bottom-right-radius: 0;
+}
+
+form {
+  gap: 10px;
+}
+
+form > * {
+  padding: 10px;
+  border: none;
+}
+
+form > button {
+  background-color: rgb(69, 149, 214, 0.7);
+  color: white;
+  text-align: center;
+  padding: 5px;
+  border-radius: 12.5px;
+  border-radius: 10px 10px 10px 0;
+}
+
+.loader {
+  background-color: rgba(0, 0, 0, 0.6);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: 0.5s ease-in-out;
+}
+
+.loader > svg {
+  transform: scale(0.05);
+  transition: 0.3s ease-in-out;
 }
