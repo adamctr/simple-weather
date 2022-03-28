@@ -38,10 +38,18 @@ async function updateCity(e) {
   urlCurrentWeather = `https://api.openweathermap.org/data/2.5/weather?q=${currentCity}&appid=0af88cd672bdf1de0ef6e4f79489d087&units=metric`;
   urlforecastweather = `https://api.openweathermap.org/data/2.5/forecast?q=${currentCity}&appid=0af88cd672bdf1de0ef6e4f79489d087&units=metric`;
   await recupererInfosAPI();
-  await recupererForecastAPI();
+  try {
+    await recupererForecastAPI();
+  } catch (err) {
+    updateLoading(true);
+    showAlert("Cette ville n'existe pas.");
+    console.error("Got an ERROR from the API.");
+    return;
+  }
+
   recupererInfoBasiques();
 
-  console.log("ville actualisé");
+  console.log("Ville actualisée");
   updateLoading(true);
 }
 
@@ -181,7 +189,7 @@ function recupererForecastAPI() {
           }
           console.log(listedttxt);
         } else {
-          console.error("Un probleme est intervenu.");
+          reject("Un problème est survenu (Appel API raté).");
         }
         console.log("Météo prochaine actualisée");
         resolve();
@@ -189,6 +197,18 @@ function recupererForecastAPI() {
     };
   });
 }
+
+const showAlert = (text) => {
+  const elemErrorBox = document.getElementById("errorBox");
+
+  elemErrorBox.textContent = text;
+  elemErrorBox.style.display = "block";
+
+  setTimeout(() => {
+    elemErrorBox.textContent = "";
+    elemErrorBox.style.display = "none";
+  }, 2000);
+};
 
 /////////////// RECUPERATIONS SVG ///////////////
 function determineSVG(svgday) {
