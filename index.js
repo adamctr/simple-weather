@@ -25,7 +25,7 @@ const updateLoading = (state) => {
   return (loaderElem.style.display = "flex");
 };
 
-function updateCity(e) {
+async function updateCity(e) {
   updateLoading(false);
   const elemInput = document.getElementById("in");
   if (e) e.preventDefault();
@@ -37,8 +37,8 @@ function updateCity(e) {
   }
   urlCurrentWeather = `https://api.openweathermap.org/data/2.5/weather?q=${currentCity}&appid=0af88cd672bdf1de0ef6e4f79489d087&units=metric`;
   urlforecastweather = `https://api.openweathermap.org/data/2.5/forecast?q=${currentCity}&appid=0af88cd672bdf1de0ef6e4f79489d087&units=metric`;
-  recupererInfosAPI();
-  recupererForecastAPI();
+  await recupererInfosAPI();
+  await recupererForecastAPI();
   recupererInfoBasiques();
 
   console.log("ville actualisé");
@@ -91,97 +91,103 @@ function integrerInfosAPI(
 }
 
 function recupererInfosAPI() {
-  let requete = new XMLHttpRequest();
-  requete.open("GET", urlCurrentWeather);
-  requete.responseType = "json";
-  requete.send();
+  return new Promise((resolve, reject) => {
+    let requete = new XMLHttpRequest();
+    requete.open("GET", urlCurrentWeather);
+    requete.responseType = "json";
+    requete.send();
 
-  requete.onload = function () {
-    if (requete.readyState === XMLHttpRequest.DONE) {
-      if (requete.status === 200) {
-        let reponse = requete.response; // On stock la réponse
+    requete.onload = function () {
+      if (requete.readyState === XMLHttpRequest.DONE) {
+        if (requete.status === 200) {
+          let reponse = requete.response; // On stock la réponse
 
-        //On stock les données
-        let currentweathertemps = reponse.weather[0].main;
-        let currentweathertemp = reponse.main.temp;
-        let wind = reponse.wind.speed;
-        let humidity = reponse.main.humidity;
-        let tempFeelLike = reponse.main.feels_like;
-        let svgday = reponse.weather[0].main;
+          //On stock les données
+          let currentweathertemps = reponse.weather[0].main;
+          let currentweathertemp = reponse.main.temp;
+          let wind = reponse.wind.speed;
+          let humidity = reponse.main.humidity;
+          let tempFeelLike = reponse.main.feels_like;
+          let svgday = reponse.weather[0].main;
 
-        integrerInfosAPI(
-          currentweathertemps,
-          currentweathertemp,
-          humidity,
-          wind,
-          tempFeelLike,
-          svgday
-        );
+          integrerInfosAPI(
+            currentweathertemps,
+            currentweathertemp,
+            humidity,
+            wind,
+            tempFeelLike,
+            svgday
+          );
+        }
+        console.log("Météo actualisée");
+        resolve();
+      } else {
+        console.error("Un probleme est intervenu.");
       }
-    } else {
-      console.log("Un probleme est intervenu.");
-    }
-  };
-  console.log("Météo actualisée");
+    };
+  });
 }
 
 ////////// RECUPERATION CARTES ////////////////
 
 function recupererForecastAPI() {
-  let requete = new XMLHttpRequest();
-  var listedttxt = new Array();
-  requete.open("GET", urlforecastweather);
-  requete.responseType = "json";
-  requete.send();
+  return new Promise((resolve, reject) => {
+    let requete = new XMLHttpRequest();
+    var listedttxt = new Array();
+    requete.open("GET", urlforecastweather);
+    requete.responseType = "json";
+    requete.send();
 
-  requete.onload = function () {
-    if (requete.readyState === XMLHttpRequest.DONE) {
-      if (requete.status === 200) {
-        let reponse = requete.response;
-        let todayDatePlain = new Date();
-        let todayDate = new Date().toISOString().slice(0, 10);
+    requete.onload = function () {
+      if (requete.readyState === XMLHttpRequest.DONE) {
+        if (requete.status === 200) {
+          let reponse = requete.response;
+          let todayDatePlain = new Date();
+          let todayDate = new Date().toISOString().slice(0, 10);
 
-        for (i = 0; i <= 39; i++) {
-          // On vérifie que ce sont des jours d'après égaux à 15h.
-          // Pour ça : on vérifie que l'API contient 15H.
-          // Et on vérifie que la jour sélectionné est différent d'aujourd'hui.
-          if (
-            reponse.list[i].dt_txt.includes("15:00:00") &&
-            reponse.list[i].dt_txt.split(" ")[0] != todayDate
-          ) {
-            listedttxt.push(i); // Contient tous les index des jours d'après à 15h.
+          for (i = 0; i <= 39; i++) {
+            // On vérifie que ce sont des jours d'après égaux à 15h.
+            // Pour ça : on vérifie que l'API contient 15H.
+            // Et on vérifie que la jour sélectionné est différent d'aujourd'hui.
+            if (
+              reponse.list[i].dt_txt.includes("15:00:00") &&
+              reponse.list[i].dt_txt.split(" ")[0] != todayDate
+            ) {
+              listedttxt.push(i); // Contient tous les index des jours d'après à 15h.
+            }
           }
+
+          // On ne veut que les 4 jours d'après :
+          if (listedttxt.length > 4) {
+            listedttxt.pop(); // TODO: slice better
+          }
+
+          // Pour chaque index des jours forecast, on affiche la valeur dans les cartes.
+          for (i = 0; i < listedttxt.length; i++) {
+            todayDatePlain.setDate(todayDatePlain.getDate() + 1);
+
+            cards[i].children[2].textContent =
+              Math.trunc(reponse.list[listedttxt[i]].main.temp) + "°C";
+
+            cards[i].children[1].textContent = capitalizeFirstLetter(
+              todayDatePlain
+                .toLocaleString("en-us", { weekday: "long" })
+                .slice(0, 3)
+            );
+
+            cards[i].children[0].innerHTML = determineSVG(
+              reponse.list[listedttxt[i]].weather[0].main
+            );
+          }
+          console.log(listedttxt);
+        } else {
+          console.error("Un probleme est intervenu.");
         }
-
-        // On ne veut que les 4 jours d'après :
-        if (listedttxt.length > 4) {
-          listedttxt.pop(); // TODO: slice better
-        }
-
-        // Pour chaque index des jours forecast, on affiche la valeur dans les cartes.
-        for (i = 0; i < listedttxt.length; i++) {
-          todayDatePlain.setDate(todayDatePlain.getDate() + 1);
-
-          cards[i].children[2].textContent =
-            Math.trunc(reponse.list[listedttxt[i]].main.temp) + "°C";
-
-          cards[i].children[1].textContent = capitalizeFirstLetter(
-            todayDatePlain
-              .toLocaleString("en-us", { weekday: "long" })
-              .slice(0, 3)
-          );
-
-          cards[i].children[0].innerHTML = determineSVG(
-            reponse.list[listedttxt[i]].weather[0].main
-          );
-        }
-        console.log(listedttxt);
-      } else {
-        console.error("Un probleme est intervenu.");
+        console.log("Météo prochaine actualisée");
+        resolve();
       }
-    }
-    console.log("Météo prochaine actualisée");
-  };
+    };
+  });
 }
 
 /////////////// RECUPERATIONS SVG ///////////////
